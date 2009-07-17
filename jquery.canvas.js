@@ -12,10 +12,10 @@
 				obj.css({width: $(window).width()});
 				canvasWidth = $(window).width();
 			} else {
-				canvasHeight = obj.css('height');
-				canvasWidth = obj.css('width');
+				canvasHeight = obj.height();
+				canvasWidth = obj.width();
 			}
-			obj.html('<canvas height="' + canvasHeight + '" width="' + canvasWidth + '" style="left: 0; position: absolute; top: 0;"></canvas>').appendTo('body');
+			obj.html('<canvas height="' + canvasHeight + '" width="' + canvasWidth + '"></canvas>').appendTo('body');
 		}
 		
 		/* Set canvas variable with the canvas DOM element */
@@ -33,7 +33,7 @@
 	$.fn.canvas = function(options) {
 		/* Default options */
 		var defaults = {
-			full: 0
+			full: false
 		};
 		
 		/* Extend default options with those provided */
@@ -49,11 +49,11 @@
 	$.fn.fillRect = function(options) {
 		/* Default options */
 		var defaults = {
-			posX: 0, // Horizontal position of start point
-			posY: 0, // Vertical position of start point
+			x: 0, // Horizontal position of start point
+			y: 0, // Vertical position of start point
 			width: 50, // Rectangle width
 			height: 50, // Rectangle height
-			fillStyle: '#000' // Fill colour as a hex, RGB(a) or keyword value
+			colour: '#000' // Fill colour as a hex, RGB(a) or keyword value
 		};
 		
 		/* Extend default options with those provided */
@@ -69,10 +69,10 @@
 				var ctx = canvas.getContext('2d');
 				
 				/* Set the fill colour */	
-				ctx.fillStyle = opts.fillStyle;
+				ctx.fillStyle = opts.colour;
 				
 				/* Create rectangle */
-				ctx.fillRect(opts.posX, opts.posY, opts.width, opts.height); // fillRect() draws immediately to canvas
+				ctx.fillRect(opts.x, opts.y, opts.width, opts.height); // fillRect() draws immediately to canvas
 			} else {
 				/* Canvas unsupported code */
 			}
@@ -82,13 +82,13 @@
 	$.fn.fillArc = function(options) {		
 		/* Default options */
 		var defaults = {
-			posX: 0, // Horizontal position of start point
-			posY: 0, // Vertical position of start point
+			x: 0, // Horizontal position of start point
+			y: 0, // Vertical position of start point
 			radius: 25, // Radius of arc
 			startAngle: 0, // In radians (Use "(Math.PI/180)*degrees")
 			endAngle: Math.PI*2, // In radians (Use "(Math.PI/180)*degrees")
 			antiClockwise: true, // Direction of drawing
-			fillStyle: '#000' // Fill colour as a hex, RGB(a) or keyword value
+			colour: '#000' // Fill colour as a hex, RGB(a) or keyword value
 		};
 		
 		/* Extend default options with those provided */
@@ -104,11 +104,11 @@
 				var ctx = canvas.getContext('2d');
 					
 				/* Set the fill colour */		
-				ctx.fillStyle = opts.fillStyle;
+				ctx.fillStyle = opts.colour;
 	    		
 	    		/* Create arc */
 	    		ctx.beginPath();
-	    		ctx.arc(opts.posX, opts.posY, opts.radius, opts.startAngle, opts.endAngle, opts.anticlockwise);
+	    		ctx.arc(opts.x, opts.y, opts.radius, opts.startAngle, opts.endAngle, opts.anticlockwise);
 				ctx.fill(); // Could use ctx.stroke();		
 			} else {
 				/* Canvas unsupported code */
@@ -116,18 +116,67 @@
 		});
 	};
 	
+	$.fn.lineTo = function(options) {
+		/* Default options */
+		var defaults = {
+			x: 10, // Horizontal position of start point
+			y: 10, // Vertical position of start point
+			to: new Array({toX: 60, toY: 60}), // Array of points to draw to
+			width: 1, // Stroke width
+			colour: '#000', // Stroke colour as a hex, RGB(a) or keyword
+			position: 'source-over' // Layer position 
+		}
+		
+		/* Extend default options with those provided */
+		var opts = $.extend(defaults, options);
+		
+		/* Iterate over each matched element */
+		return this.each(function() {
+			var obj = $(this);
+			var canvas = checkCanvas(obj);
+
+			if (canvas.getContext) {	
+				/* Store the rendering context in the object */
+				var ctx = canvas.getContext('2d');
+				
+				/* Set layer composition */
+				ctx.globalCompositeOperation = opts.position;
+					
+				/* Set the stroke style */		
+				ctx.strokeStyle = opts.colour;
+				ctx.lineWidth = opts.width;
+	    		
+	    		/* Create curve */
+	    		ctx.beginPath();
+				ctx.moveTo(opts.x, opts.y);
+				
+				for (var i = 0; i < opts.to.length; i++) {
+					ctx.lineTo(opts.to[i].toX, opts.to[i].toY);
+				}
+				
+				ctx.stroke();
+				
+				ctx.lineWidth = 1;
+				
+				/* Reset layer composition? */
+			} else {
+				/* Canvas unsupported code */
+			}			
+		});		
+	}
+	
 	$.fn.bezierCurveTo = function(options) {
 		/* Default options */
 		var defaults = {
-			posX: 0, // Horizontal position of start point
-			posY: 0, // Vertical position of start point
+			x: 0, // Horizontal position of start point
+			y: 0, // Vertical position of start point
 			cp1x: 0,
 			cp1y: 0,
 			cp2x: 0,
 			cp2y: 0,
 			endX: 0,
 			endY: 0,
-			strokeStyle: '#000', // Stroke colour as a hex, RGB(a) or keyword value
+			colour: '#000', // Stroke colour as a hex, RGB(a) or keyword value
 		}
 			
 		/* Extend default options with those provided */
@@ -143,11 +192,11 @@
 				var ctx = canvas.getContext('2d');
 					
 				/* Set the fill colour */		
-				ctx.strokeStyle = opts.strokeStyle;
+				ctx.strokeStyle = opts.colour;
 	    		
 	    		/* Create curve */
 	    		ctx.beginPath();
-				ctx.moveTo(opts.posX, opts.posY);
+				ctx.moveTo(opts.x, opts.y);
 				ctx.bezierCurveTo(opts.cp1x, opts.cp1y, opts.cp2x, opts.cp2y, opts.endX, opts.endY);
 				ctx.stroke();
 			} else {
